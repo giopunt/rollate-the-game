@@ -46,27 +46,72 @@ function setKeyStatusUp(e){
   }
 }
 
-if (document.body.addEventListener) {
-  //set key status
-  document.body.addEventListener('keydown', setKeyStatusDown, false);
-  document.body.addEventListener('mousedown', function(){
-    setKeyStatusDown({keyCode: 32});
-  }, false);
-  document.body.addEventListener('touchstart', function(){
-    setKeyStatusDown({keyCode: 32});
-  }, false);
+var xDown = null, yDown = null, xUp, yUp;
+var handleTouchMove = function(event) {
+  if ( ! xDown || ! yDown ) {
+    return;
+  }
 
-  //reset key status
-  document.body.addEventListener('keyup', setKeyStatusUp, false);
-  document.body.addEventListener('touchend', function(){
-    setKeyStatusUp({keyCode: 32});
-  }, false);
-  document.body.addEventListener('mouseup', function(){
-    setKeyStatusUp({keyCode: 32});
-  }, false);
-} else if (el.attachEvent)  {
-  document.body.attachEvent('keydown', setKeyStatusDown);
-  document.body.attachEvent('keyup', setKeyStatusUp);
+  var xUp = event.touches[0].clientX;
+  var yUp = event.touches[0].clientY;
+
+  var xDiff = xDown - xUp;
+  var yDiff = yDown - yUp;
+
+  if(Math.abs(xDiff) > 5){
+    if ( xDiff > 0) {
+      setKeyStatusDown({keyCode: 37});
+    } else {
+      setKeyStatusDown({keyCode: 39});
+    }
+  }
+  if(Math.abs(yDiff) > 5){
+    if ( yDiff > 0) {
+      setKeyStatusDown({keyCode: 38});
+    } else {
+      setKeyStatusDown({keyCode: 40});
+    }
+  }
+  /* reset values */
+  xUp = xDown;
+  yUp = yDown;
+};
+
+function bindKeyEvents(){
+  if (document.body.addEventListener) {
+    //set key status
+
+    document.body.addEventListener('keydown', setKeyStatusDown, false);
+    document.body.addEventListener('mousedown', function(){
+      setKeyStatusDown({keyCode: 32});
+    }, false);
+    document.body.addEventListener('click', function(event){
+      setKeyStatusDown({keyCode: 32});
+      setTimeout(function(){
+        setKeyStatusUp({keyCode: 32});
+      }, 50);
+    }, false);
+
+    document.body.addEventListener('touchstart', function(event){
+      xDown =  event.touches[0].clientX;
+      yDown =  event.touches[0].clientY;
+    }, false);
+    document.body.addEventListener('touchmove', function(event){
+      handleTouchMove(event);
+    }, false);
+
+    //reset key status
+    document.body.addEventListener('keyup', setKeyStatusUp, false);
+    document.body.addEventListener('touchend', function(event){
+      resetKeyStatus();
+    }, false);
+    document.body.addEventListener('mouseup', function(){
+      setKeyStatusUp({keyCode: 32});
+    }, false);
+  } else if (el.attachEvent)  {
+    document.body.attachEvent('keydown', setKeyStatusDown);
+    document.body.attachEvent('keyup', setKeyStatusUp);
+  }
 }
 
 resetKeyStatus();
